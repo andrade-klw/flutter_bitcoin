@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'dart:async';
 
 class Home extends StatefulWidget {
   @override
@@ -8,52 +10,63 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  TextEditingController _controllerCep = TextEditingController();
-  String _resultado = "Resultado";
+  String _resultado = "0";
 
-  _recuperarCep() async {
-    String cepDigitado = _controllerCep.text;
-    var url = Uri.parse("http://viacep.com.br/ws/${cepDigitado}/json");
+  _recuperarBit() async {
+    var url = Uri.parse("https://blockchain.info/ticker");
 
     http.Response response;
     response = await http.get(url);
 
     Map<String, dynamic> retorno = json.decode(response.body);
-    String logradouro = retorno["logradouro"];
-    String complemento = retorno["complemento"];
-    String bairro = retorno["bairro"];
 
     setState(() {
-      _resultado = "${logradouro}, ${complemento}, ${bairro}";
+      _resultado = retorno["BRL"]["last"].toString();
     });
-
-    print(
-        "Logradouro: ${logradouro} complemento: ${complemento} bairro: ${bairro}");
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Consumo Web"),
+        title: Text("Flutter Bitcoin Price"),
       ),
       body: Container(
         padding: EdgeInsets.all(40),
-        child: Column(
-          children: [
-            TextField(
-              keyboardType: TextInputType.number,
-              decoration:
-                  InputDecoration(labelText: "Digite o cep ex: 88106547"),
-              style: TextStyle(fontSize: 20),
-              controller: _controllerCep,
-            ),
-            ElevatedButton(
-              onPressed: _recuperarCep,
-              child: Text("Clique"),
-            ),
-            Text(_resultado)
-          ],
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Padding(
+                padding: EdgeInsets.all(30),
+                child: Text(
+                  "Bitcoin Price",
+                  style: TextStyle(
+                      fontSize: 35,
+                      color: Colors.deepPurple,
+                      fontWeight: FontWeight.bold),
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.only(top: 30, bottom: 30),
+                child: Text(
+                  "R\$ " + _resultado,
+                  style: TextStyle(fontSize: 35),
+                ),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(primary: Colors.deepPurple),
+                child: Text(
+                  "Atualizar",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                  ),
+                ),
+                onPressed: _recuperarBit,
+              ),
+            ],
+          ),
         ),
       ),
     );
